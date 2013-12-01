@@ -44,7 +44,8 @@ class Lexicon
                     $context
                 ));
         }
-        $this->storage->retrieve($field, $context);
+
+        return $this->storage->retrieve($field, $context);
     }
 
     public function delete($field, $context = null)

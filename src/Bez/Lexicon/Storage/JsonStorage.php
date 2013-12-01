@@ -23,13 +23,19 @@ class JsonStorage implements StorageInterface
         $this->file = $jsonFile;
     }
 
-    protected function initialize()
+    public  function initialize()
     {
         if ($this->initialized === false) {
-
             if (is_readable($this->file) && is_writable($this->file)) {
                 $contents = file_get_contents($this->file);
-                if ($contents[0] != '{' && $contents[count($contents)] != '}') {
+
+                if (strlen($contents) == 0) {
+                    set_error_handler(array($this, 'customErrorHandler'));
+                        $fh = fopen($this->file, 'w');
+                        fwrite($fh, '{}');
+                        fclose($fh);
+                    restore_error_handler();
+                } elseif ($contents[0] != '{' && $contents[count($contents)] != '}') {
                     throw new \RuntimeException(sprintf(
                         'File already contains data that "%s" cannot handle safely.',
                         __CLASS__
@@ -46,6 +52,7 @@ class JsonStorage implements StorageInterface
             } else {
                 throw new \RuntimeException(sprintf('"%s" must be readble and writable.', $this->file));
             }
+            $this->initialized = true;
         }
     }
 
@@ -71,6 +78,8 @@ class JsonStorage implements StorageInterface
 
     protected function getData()
     {
+        $this->initialize();
+
         if ($this->data === null) {
             $this->data = json_decode(file_get_contents($this->file));
         }
@@ -79,6 +88,8 @@ class JsonStorage implements StorageInterface
 
     public function setData($data)
     {
+        $this->initialize();
+
         $this->data = $data;
         file_put_contents($this->file, json_encode($this->data));
         return $this;
@@ -96,18 +107,18 @@ class JsonStorage implements StorageInterface
     {
         $data = $this->getData();
 
-        if (!isset($data[$field])) {
-            $data[$field] = array();
+        if (!isset($data->$field)) {
+            $data->$field = (object) array();
         }
 
         if ($context === null) {
-            $data[$field]['value'] = $value;
+            $data->$field->value = $value;
         } else {
 
-            if (!isset($data[$field]['alt'])) {
-                $data[$field]['alt'] = array();
+            if (!isset($data->$field->alt)) {
+                $data->$field->alt = (object) array();
             }
-            $data[$field]['alt'][$context] = array('value' => $value);
+            $data->$field->alt->$context = (object) array('value' => $value);
         }
 
         $this->setData($data);
@@ -122,17 +133,17 @@ class JsonStorage implements StorageInterface
     {
         $data = $this->getData();
 
-        if ($context === null && isset($data[$field]['value'])) {
-            return $data[$field]['value'];
-        } elseif ($context !== null && $field && isset($data[$field]['alt'][$context]['value'])) {
-            return $data[$field]['alt'][$context]['value'];
+        if ($context === null && isset($data->$field->value)) {
+            return $data->$field->value;
+        } elseif ($context !== null && $field && isset($data->$field->alt->$context->value)) {
+            return $data->$field->alt->$context->value;
         } elseif ($context !== null && $field === null) {
 
             $results = array();
 
             foreach($data as $id => $sub) {
-                if (isset($sub['alt'][$context]['value'])) {
-                    $results[$id] = $sub['alt'][$context]['value'];
+                if (isset($sub->alt->$context->value)) {
+                    $results[$id] = $sub->alt->$context->value;
                 }
             }
 
@@ -151,14 +162,14 @@ class JsonStorage implements StorageInterface
     {
         $data = $this->getData();
         if ($context === null) {
-            unset($data[$field]['value']);
+            unset($data->$field->value);
             $this->setData($data);
         } elseif ($field !== null) {
-            unset($data[$field]['alt'][$context]['value']);
+            unset($data->$field->alt->$context->value);
             $this->setData($data);
         } else {
             foreach ($data as $id => &$sub) {
-                unset($data[$id]['alt'][$context]['value']);
+                unset($data->$id->alt->$context->value);
             }
             $this->setData($data);
         }
