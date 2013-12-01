@@ -1,0 +1,21 @@
+{
+    "name": "bez/lexicon",
+    "type": "library",
+    "description": "Name-value pair persistence with different back-ends.",
+    "keywords": ["name-value pair"],
+    "homepage": "https://github.com/bezhermoso/Lexicon",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bezalel Hermoso",
+            "email": "bezalelhermoso@gmail.com",
+            "homepage": "http://bez.im",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "Bez\\Lexicon": "src/"
+        }
+    }
+}
