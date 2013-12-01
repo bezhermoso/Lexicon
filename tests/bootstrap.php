@@ -1,7 +1,11 @@
 <?php
-/**
- * Created by bootstrap.php.
- * User: Bezalel
- * Date: 12/1/13
- * Time: 7:08 AM
- */ 
+
+$autoloader = __DIR__ . '/../vendor/autoload.php';
+
+if (!is_file($autoloader)) {
+
+    trigger_error($autoloader . ' not found. Run `composer install`.', E_ERROR);
+    die();
+}
+
+require $autoloader;
