@@ -63,7 +63,16 @@ class DirectoryStorage implements StorageInterface
         }
 
         if (is_writable($file)) {
-            file_put_contents($file, json_encode($value));
+
+            if (version_compare(PHP_VERSION, '5.4.0', '>=')) {
+                $json = json_encode($value, JSON_PRETTY_PRINT | JSON_BIGINT_AS_STRING);
+            } else {
+                $json = json_encode($value);
+            }
+
+            file_put_contents($file, $json);
+            return;
+
         } elseif (!file_exists($file)) {
             if($context === null) {
                 $this->createFile($file);
