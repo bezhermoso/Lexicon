@@ -32,6 +32,7 @@ class JsonStorageTest extends \PHPUnit_Framework_TestCase
         $this->initFile = $this->dataDir . '/init.json';
 
         $this->lexicon = new Lexicon();
+
         $this->storage = new JsonStorage($this->dataDir . '/lexicon.json');
         $this->lexicon->setStorage($this->storage);
 
@@ -69,14 +70,23 @@ class JsonStorageTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($value);
     }
 
-    public function testPersistence()
+    public function testPersistenceWithoutContext()
     {
         $value = "The quick brown fox jumps over the lazy dog.";
         $this->lexicon->set('quick-brown-fox', $value);
         $this->assertEquals($value, $this->lexicon->get('quick-brown-fox'));
 
-        $this->lexicon->set('answer', 42);
-        $this->assertEquals(42, $this->lexicon->get('answer'));
+        $this->lexicon->set('The "meaning" to life', 42);
+        $this->assertEquals(42, $this->lexicon->get('The "meaning" to life'));
+
+    }
+
+    public function testPersistenceWithContexts()
+    {
+        $value = array('Hitch-22', 'god is Not Great', 'The Trials of Henry Kissinger');
+        $this->lexicon->set('books', $value, 'Christopher Hitchens');
+
+        $this->assertEquals($value, $this->lexicon->get('books', 'Christopher Hitchens'));
 
     }
 

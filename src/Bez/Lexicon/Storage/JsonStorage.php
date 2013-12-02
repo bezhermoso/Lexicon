@@ -91,7 +91,13 @@ class JsonStorage implements StorageInterface
         $this->initialize();
 
         $this->data = $data;
-        file_put_contents($this->file, json_encode($this->data));
+
+        if (version_compare(PHP_VERSION, '5.4.0', '>=')) {
+            $json = json_encode($this->data,JSON_PRETTY_PRINT | JSON_BIGINT_AS_STRING);
+        } else {
+            $json = json_encode($this->data);
+        }
+        file_put_contents($this->file, $json);
         return $this;
     }
 
@@ -112,13 +118,13 @@ class JsonStorage implements StorageInterface
         }
 
         if ($context === null) {
-            $data->$field->value = $value;
+            $data->$field->definition = $value;
         } else {
 
-            if (!isset($data->$field->alt)) {
-                $data->$field->alt = (object) array();
+            if (!isset($data->$field->contexts)) {
+                $data->$field->contexts = (object) array();
             }
-            $data->$field->alt->$context = (object) array('value' => $value);
+            $data->$field->contexts->$context = (object) array('definition' => $value);
         }
 
         $this->setData($data);
@@ -133,17 +139,17 @@ class JsonStorage implements StorageInterface
     {
         $data = $this->getData();
 
-        if ($context === null && isset($data->$field->value)) {
-            return $data->$field->value;
-        } elseif ($context !== null && $field && isset($data->$field->alt->$context->value)) {
-            return $data->$field->alt->$context->value;
+        if ($context === null && isset($data->$field->definition)) {
+            return $data->$field->definition;
+        } elseif ($context !== null && $field && isset($data->$field->contexts->$context->definition)) {
+            return $data->$field->contexts->$context->definition;
         } elseif ($context !== null && $field === null) {
 
             $results = array();
 
             foreach($data as $id => $sub) {
-                if (isset($sub->alt->$context->value)) {
-                    $results[$id] = $sub->alt->$context->value;
+                if (isset($sub->contexts->$context->definition)) {
+                    $results[$id] = $sub->contexts->$context->definition;
                 }
             }
 
@@ -162,14 +168,14 @@ class JsonStorage implements StorageInterface
     {
         $data = $this->getData();
         if ($context === null) {
-            unset($data->$field->value);
+            unset($data->$field->definition);
             $this->setData($data);
         } elseif ($field !== null) {
-            unset($data->$field->alt->$context->value);
+            unset($data->$field->contexts->$context->definition);
             $this->setData($data);
         } else {
             foreach ($data as $id => &$sub) {
-                unset($data->$id->alt->$context->value);
+                unset($data->$id->contexts->$context->definition);
             }
             $this->setData($data);
         }
