@@ -1,1 +1,19 @@
-{"quick-brown-fox":{"value":"The quick brown fox jumps over the lazy dog."},"answer":{"value":42}}
+{
+    "quick-brown-fox": {
+        "definition": "The quick brown fox jumps over the lazy dog."
+    },
+    "The \"meaning\" to life": {
+        "definition": 42
+    },
+    "books": {
+        "contexts": {
+            "Christopher Hitchens": {
+                "definition": [
+                    "Hitch-22",
+                    "god is Not Great",
+                    "The Trials of Henry Kissinger"
+                ]
+            }
+        }
+    }
+}
