@@ -10,7 +10,7 @@ namespace Bez\Lexicon\Storage;
 
 use Bez\Lexicon\NodeAddress;
 
-class StorageStack implements StorageInterface
+class StorageStack
 {
 
     /**
@@ -30,53 +30,34 @@ class StorageStack implements StorageInterface
         return $this;
     }
 
+    public function retrieve($node)
+    {
+        foreach ($this->storages as $namespace => $storage) {
+
+            $separator = $this->separators[$namespace];
+            $address = new NodeAddress($node, $separator);
+            if ($address->getRoot() == $namespace) {
+                return $storage->retrieve($node);
+            }
+        }
+        return null;
+    }
+
+    public function store($node, $value)
+    {
+        foreach ($this->storages as $namespace => $storage) {
+            $separator = $this->separators[$namespace];
+            $address = new NodeAddress($node, $separator);
+            if ($address->getRoot() == $namespace && !$storage->isReadonly()) {
+                return $storage->store($node, $value);
+            }
+        }
+        throw new \RuntimeException(sprintf('Cannot find a suitable, writable storage for the node "%s".', $node));
+    }
+
     public function removeStorage($namespace)
     {
         unset($this->storages[$namespace], $this->separators[$namespace]);
-    }
-
-    public function isReadonly()
-    {
-        $result = array_filter($this->storages, function (StorageInterface $storage) {
-           return $storage->isReadonly();
-        });
-        return count($result) > 0;
-    }
-
-    public function retrieve(NodeAddress $nodeAddress)
-    {
-        if (isset($this->storages[$nodeAddress->getRoot()])) {
-
-            $storage = $this->storages[$nodeAddress->getRoot()];
-            $separator = $this->separators[$nodeAddress->getRoot()];
-
-            $subnode = $nodeAddress->getSubnode();
-
-            if ($subnode->getSeparator() != $separator) {
-                $nodeAddress = new NodeAddress($subnode->getAddress(), $separator);
-            }
-            return $storage->retrieve($nodeAddress);
-        } else {
-            $this->getFallbackStorage()->retrieve($nodeAddress);
-        }
-    }
-
-    public function store(NodeAddress $nodeAddress, $value)
-    {
-        if (isset($this->storages[$nodeAddress->getRoot()])) {
-
-            $storage = $this->storages[$nodeAddress->getRoot()];
-            $separator = $this->separators[$nodeAddress->getRoot()];
-
-            $subnode = $nodeAddress->getSubnode();
-
-            if ($subnode->getSeparator() != $separator) {
-                $nodeAddress = new NodeAddress($subnode->getAddress(), $separator);
-            }
-            return $storage->store($nodeAddress, $value);
-        } else {
-            $this->getFallbackStorage()->store($nodeAddress, $value);
-        }
     }
 
     public function getFallbackStorage()

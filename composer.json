@@ -13,6 +13,10 @@
             "role": "Developer"
         }
     ],
+    "require" : {
+        "php" : ">=5.3.3",
+        "bez/php-utils" : "dev-master"
+    },
     "autoload": {
         "psr-0": {
             "Bez\\Lexicon": "src/"

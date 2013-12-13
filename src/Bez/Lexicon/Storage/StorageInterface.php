@@ -10,11 +10,9 @@ namespace Bez\Lexicon\Storage;
 
 interface StorageInterface
 {
-    public function supports($address);
-
     public function isReadonly();
 
     public function retrieve($address);
 
-    public function store($address);
+    public function store($address, $value);
 }

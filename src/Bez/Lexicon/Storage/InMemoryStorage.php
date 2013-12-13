@@ -25,19 +25,13 @@ class InMemoryStorage implements StorageInterface
         return false;
     }
 
-
-    public function supports($address)
-    {
-        return true;
-    }
-
     public function retrieve($address)
     {
-        // TODO: Implement retrieve() method.
+        $this->catalog->get($address);
     }
 
-    public function store($address)
+    public function store($address, $value)
     {
-        // TODO: Implement store() method.
+        $this->catalog->set($address, $value);
     }
 }
