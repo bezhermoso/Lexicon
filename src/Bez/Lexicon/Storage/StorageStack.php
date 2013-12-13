@@ -8,116 +8,92 @@
 
 namespace Bez\Lexicon\Storage;
 
+use Bez\Lexicon\NodeAddress;
 
 class StorageStack implements StorageInterface
 {
-    /**
-     * @var array|StorageInterface[]
-     */
-    protected $storages;
-
-    public function __construct()
-    {
-        $this->storages = array();
-    }
 
     /**
-     * @param string $field
-     * @param string $context
-     * @param null $value
-     * @return bool
+     * @var StorageInterface[]
      */
-    public function supports($field, $context, $value = null)
+    protected $storages = array();
+
+    protected $separators = array();
+
+    protected $fallbackStorage;
+
+    public function addStorage($namespace, StorageInterface $storage, $separator = '.')
     {
-        if (count($this->storages) > 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Perform the key-value pair persistence.
-     *
-     * @param string $field
-     * @param string $context
-     * @param mixed $value
-     * @throws \RuntimeException
-     * @return boolean
-     */
-    public function store($field, $context, $value)
-    {
-        foreach ($this->storages as $candidate) {
-            if ($candidate->supports($field, $context, $value)) {
-                $candidate->store($field, $context, $value);
-                return;
-            }
-        }
-
-        throw new \RuntimeException(
-            sprintf(
-                'Cannot find a suitable storage for storing field "%", context "%s" and value "%s"',
-                $field,
-                $context, is_scalar($value) ? $value : get_class($value)
-            ));
-    }
-
-    /**
-     * @param StorageInterface $storage
-     * @return $this
-     */
-    public function addStorage(StorageInterface $storage)
-    {
-        $i = array_search($storage, $this->storages);
-
-        if ($i === false) {
-            $this->storages[] = $storage;
-        }
+        $this->storages[$namespace] = $storage;
+        $this->separators[$namespace] = $separator;
 
         return $this;
     }
 
-    /**
-     * @param string $field
-     * @param string $context
-     * @throws \RuntimeException
-     * @return mixed
-     */
-    public function retrieve($field, $context)
+    public function removeStorage($namespace)
     {
-        foreach ($this->storages as $storage) {
-            if ($storage->supports($field, $context)) {
-                return $storage->retrieve($field, $context);
-            }
-        }
-
-        throw new \RuntimeException(
-            sprintf(
-                'Cannot find a suitable storage for storing field "%" and context "%s"',
-                $field,
-                $context
-            ));
+        unset($this->storages[$namespace], $this->separators[$namespace]);
     }
 
-    /**
-     * @param string $field
-     * @param string $context
-     * @throws \RuntimeException
-     * @return mixed
-     */
-    public function remove($field, $context)
+    public function isReadonly()
     {
-        foreach ($this->storages as $storage) {
-            if ($storage->supports($field, $context)) {
-                return $storage->remove($field, $context);
+        $result = array_filter($this->storages, function (StorageInterface $storage) {
+           return $storage->isReadonly();
+        });
+        return count($result) > 0;
+    }
+
+    public function retrieve(NodeAddress $nodeAddress)
+    {
+        if (isset($this->storages[$nodeAddress->getRoot()])) {
+
+            $storage = $this->storages[$nodeAddress->getRoot()];
+            $separator = $this->separators[$nodeAddress->getRoot()];
+
+            $subnode = $nodeAddress->getSubnode();
+
+            if ($subnode->getSeparator() != $separator) {
+                $nodeAddress = new NodeAddress($subnode->getAddress(), $separator);
             }
+            return $storage->retrieve($nodeAddress);
+        } else {
+            $this->getFallbackStorage()->retrieve($nodeAddress);
+        }
+    }
+
+    public function store(NodeAddress $nodeAddress, $value)
+    {
+        if (isset($this->storages[$nodeAddress->getRoot()])) {
+
+            $storage = $this->storages[$nodeAddress->getRoot()];
+            $separator = $this->separators[$nodeAddress->getRoot()];
+
+            $subnode = $nodeAddress->getSubnode();
+
+            if ($subnode->getSeparator() != $separator) {
+                $nodeAddress = new NodeAddress($subnode->getAddress(), $separator);
+            }
+            return $storage->store($nodeAddress, $value);
+        } else {
+            $this->getFallbackStorage()->store($nodeAddress, $value);
+        }
+    }
+
+    public function getFallbackStorage()
+    {
+        if (null === $this->fallbackStorage) {
+            $this->fallbackStorage = new InMemoryStorage();
         }
 
-        throw new \RuntimeException(
-            sprintf(
-                'Cannot find a suitable storage for storing field "%" and context "%s"',
-                $field,
-                $context
-            ));
+        return $this->fallbackStorage;
+    }
+
+    public function setFallbackStorage(StorageInterface $storage)
+    {
+        if ($storage === $this) {
+            throw new \LogicException('You cannot set a storage as its own fallback.');
+        }
+
+        $this->fallbackStorage = $storage;
     }
 }

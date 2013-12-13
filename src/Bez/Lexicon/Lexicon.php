@@ -9,63 +9,47 @@
 namespace Bez\Lexicon;
 
 use Bez\Lexicon\Storage\StorageInterface;
+use Bez\Lexicon\Storage\StorageStack;
 
-class Lexicon
+class Lexicon extends Catalog
 {
     /**
      * @var StorageInterface
      */
     protected $storage;
 
-    public function set($field, $value, $context = null)
-    {
-        if (!$this->storage->supports($field, $context, $value)) {
-            throw new \RuntimeException(
-                sprintf(
-                    '"%s" does not support field "%s", context "%s", and value "%s"',
-                    $field,
-                    $context,
-                    is_scalar($value) ? $value : get_class($value)
-                ));
-        }
-
-        $this->storage->store($field, $context, $value);
-
-        return $this;
-    }
-
-    public function get($field, $context = null)
-    {
-        if (!$this->storage->supports($field, $context)) {
-            throw new \RuntimeException(
-                sprintf(
-                    '"%s" does not support field "%s" and context "%s"',
-                    $field,
-                    $context
-                ));
-        }
-
-        return $this->storage->retrieve($field, $context);
-    }
-
-    public function delete($field, $context = null)
-    {
-        if (!$this->storage->supports($field, $context)) {
-            throw new \RuntimeException(
-                sprintf(
-                    '"%s" does not support field "%s" and context "%s"',
-                    $field,
-                    $context
-                ));
-        }
-
-        $this->storage->remove($field, $context);
-
-        return $this;
-    }
-
     public function setStorage(StorageInterface $storage)
     {
         $this->storage = $storage;
+    }
+
+    public function getStorage()
+    {
+        if (null === $this->storage) {
+            $this->storage = new StorageStack();
+        }
+        return $this->storage;
+    }
+
+    public function get($node)
+    {
+        if (!$node instanceof NodeAddress) {
+            $node = $this->createNodeAddress($node);
+        }
+        return $this->getStorage()->retrieve($node);
+    }
+
+    public function set($node, $value)
+    {
+        $storage = $this->getStorage();
+
+        if (!$storage->isReadonly()) {
+            if (!$node instanceof NodeAddress) {
+                $node = $this->createNodeAddress($node);
+            }
+            return $storage->store($node, $value);
+        } else {
+            throw new \RuntimeException('Storage is read-only.');
+        }
     }
 } 

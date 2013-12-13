@@ -8,31 +8,13 @@
 
 namespace Bez\Lexicon\Storage;
 
-
 interface StorageInterface
 {
+    public function supports($address);
 
-    /**
-     * Perform the key-value pair persistence.
-     *
-     * @param string $field
-     * @param mixed $value
-     * @internal param string $context
-     * @return boolean
-     */
-    public function store($field, $value);
+    public function isReadonly();
 
-    /**
-     * @param string $field
-     * @param string $context
-     * @return mixed
-     */
-    public function retrieve($field);
+    public function retrieve($address);
 
-    /**
-     * @param string $field
-     * @param string $context
-     * @return mixed
-     */
-    public function remove($field, $context);
+    public function store($address);
 }

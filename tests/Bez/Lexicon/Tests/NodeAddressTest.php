@@ -80,6 +80,14 @@ class NodeAddressTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testDepth()
+    {
+        $node = new NodeAddress('a.b.c.d.e.f.g.h.i.j.k.l.m');
+        $this->assertEquals(13, $node->getDepth());
+        $node = new NodeAddress('a');
+        $this->assertEquals(1, $node->getDepth());
+    }
+
     public function testExistenceCheck()
     {
         $data = array('foo' => array('bar' => array('baz' => 42)));

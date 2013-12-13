@@ -39,4 +39,9 @@ class CatalogTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(42, $this->catalog->get('foo.baz'));
         $this->assertEquals('forty two.', $this->catalog->get('foo.bar'));
     }
-} 
+
+    public function testTest()
+    {
+
+    }
+}

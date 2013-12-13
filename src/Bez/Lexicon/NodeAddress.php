@@ -14,7 +14,7 @@ class NodeAddress
     const RESOLVE_AS_ARRAY = 2;
     const RESOLVE_AS_OBJECT = 3;
 
-    protected $node;
+    protected $address;
 
     protected $separator;
 
@@ -33,8 +33,8 @@ class NodeAddress
     {
         $this->separator = $separator;
         if($this->isValid($node)) {
+            $this->address = $node;
             $this->parse($node, $separator);
-            $this->node = $node;
         } else {
             throw new \DomainException('Address "' . $node . '" is not formatted correctly.');
         }
@@ -47,6 +47,16 @@ class NodeAddress
     public function getRoot()
     {
         return $this->root;
+    }
+
+    public function getAddress()
+    {
+        return $this->address;
+    }
+
+    public function getSeparator()
+    {
+        return $this->separator;
     }
 
     /**
@@ -178,6 +188,15 @@ class NodeAddress
             $data[$this->getRoot()] = $value;
         } else {
             $this->getSubnode()->assign($value, $data[$this->getRoot()]);
+        }
+    }
+
+    public function getDepth()
+    {
+        if ($this->isLeaf()) {
+            return 1;
+        } else {
+            return 1 + $this->getSubnode()->getDepth();
         }
     }
 }

@@ -35,7 +35,7 @@ class Catalog
      * @param $node
      * @return NodeAddress
      */
-    private function createNodeAddress($node)
+    protected function createNodeAddress($node)
     {
         return new NodeAddress($node, $this->nodeSeparator);
     }
