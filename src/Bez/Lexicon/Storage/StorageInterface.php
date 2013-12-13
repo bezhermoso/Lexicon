@@ -11,34 +11,23 @@ namespace Bez\Lexicon\Storage;
 
 interface StorageInterface
 {
-    /**
-     * Evaluates if the storage supports a particular field, namespace, and value.
-     *
-     * The "store" method is called if this methods returns TRUE. Not if otherwise.
-     *
-     * @param string $field
-     * @param string $context
-     * @param mixed $value
-     * @return boolean
-     */
-    public function supports($field, $context, $value = null);
 
     /**
      * Perform the key-value pair persistence.
      *
      * @param string $field
-     * @param string $context
      * @param mixed $value
+     * @internal param string $context
      * @return boolean
      */
-    public function store($field, $context, $value);
+    public function store($field, $value);
 
     /**
      * @param string $field
      * @param string $context
      * @return mixed
      */
-    public function retrieve($field, $context);
+    public function retrieve($field);
 
     /**
      * @param string $field

@@ -11,7 +11,7 @@ namespace Bez\Lexicon\Tests\Storage;
 use Bez\Lexicon\Lexicon;
 use Bez\Lexicon\Storage\JsonStorage;
 
-class JsonStorageTest extends \PHPUnit_Framework_TestCase
+class JsonStorageTest/* extends \PHPUnit_Framework_TestCase*/
 {
     /**
      * @var Lexicon

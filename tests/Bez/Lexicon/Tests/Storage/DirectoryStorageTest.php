@@ -12,7 +12,7 @@ namespace Bez\Lexicon\Tests\Storage;
 use Bez\Lexicon\Lexicon;
 use Bez\Lexicon\Storage\DirectoryStorage;
 
-class DirectoryStorageTest extends \PHPUnit_Framework_TestCase
+class DirectoryStorageTest/* extends \PHPUnit_Framework_TestCase*/
 {
     protected $dir;
 
